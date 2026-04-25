@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>매장 매출 관리</title>
+  <title>의류 매출 관리</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { height: 100%; }
     body {
       font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
       background: #f0f2f8; color: #2d2d2d;
@@ -24,19 +23,6 @@
     .month-label { font-size: 1.15em; font-weight: 800; }
     .month-label span { color: #f97316; }
     .header-loc-badge { padding: 5px 12px; background: #fff7ed; color: #ea580c; border: 1.5px solid #fdba74; border-radius: 20px; font-size: 0.72em; font-weight: 700; }
-
-    /* ── 고정지출 버튼 ── */
-    .fixed-btn {
-      padding: 6px 12px; background: #fff0f0; color: #ef5350;
-      border: 1.5px solid #ffcdd2; border-radius: 20px;
-      font-size: 0.72em; font-weight: 700; cursor: pointer;
-      font-family: inherit; transition: all 0.15s;
-      display: flex; align-items: center; gap: 4px;
-    }
-    .fixed-btn:hover { background: #ffebee; border-color: #ef9a9a; }
-    .fixed-btn.has-data { background: #fff0f0; border-color: #ef5350; color: #ef5350; }
-    .fixed-btn-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef5350; display: none; }
-    .fixed-btn.has-data .fixed-btn-dot { display: inline-block; }
 
     /* ── 월간 요약 ── */
     .monthly-summary { display: flex; border-top: 1px solid #f0f0f0; border-top: none; }
@@ -163,7 +149,6 @@
     .input-row.vat label        { color: #0891b2; }
     .input-row.mgmt label       { color: #059669; }
     .input-row.etc-exp label    { color: #6b7280; }
-    .input-row.weekpay label    { color: #d946ef; }
     .input-wrap { display: flex; align-items: center; border: 1.5px solid #eee; border-radius: 10px; background: #fafafa; overflow: hidden; transition: border 0.15s; }
     .input-wrap:focus-within { border-color: #f97316; background: #fff; }
     .input-wrap.card-wrap:focus-within     { border-color: #ea580c; }
@@ -175,7 +160,6 @@
     .input-wrap.vat-wrap:focus-within      { border-color: #0891b2; }
     .input-wrap.mgmt-wrap:focus-within     { border-color: #059669; }
     .input-wrap.etc-wrap:focus-within      { border-color: #6b7280; }
-    .input-wrap.weekpay-wrap:focus-within  { border-color: #d946ef; }
     .input-wrap input { flex: 1; border: none; background: transparent; padding: 10px 12px; font-size: 0.93em; font-family: inherit; color: #2d2d2d; outline: none; text-align: right; }
     .input-unit { padding: 0 12px 0 4px; font-size: 0.82em; color: #aaa; font-weight: 600; }
 
@@ -208,17 +192,6 @@
     .btn-cancel { padding: 13px 16px; background: #f0f2f8; color: #888; border: none; border-radius: 10px; font-size: 0.88em; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-cancel:hover { background: #e2e4f0; }
 
-    /* ── 고정지출 모달 ── */
-    .fixed-overlay { display: none; position: fixed; inset: 0; background: rgba(30,30,60,0.45); z-index: 100; align-items: center; justify-content: center; }
-    .fixed-overlay.open { display: flex; }
-    .fixed-modal { background: #fff; border-radius: 20px; padding: 24px 22px; width: 350px; box-shadow: 0 20px 60px rgba(0,0,0,0.22); max-height: 90vh; overflow-y: auto; }
-    .fixed-modal-header { margin-bottom: 4px; }
-    .fixed-modal-month { font-size: 0.78em; color: #bbb; font-weight: 600; margin-bottom: 2px; }
-    .fixed-modal-title { font-size: 1.05em; font-weight: 800; margin-bottom: 6px; }
-    .fixed-modal-desc { font-size: 0.72em; color: #aaa; font-weight: 600; background: #fafafa; border-radius: 8px; padding: 8px 10px; margin-bottom: 14px; line-height: 1.6; }
-    .fixed-total-box { background: #fff5f5; border-radius: 10px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .fixed-total-label { font-size: 0.8em; font-weight: 700; color: #888; }
-    .fixed-total-value { font-size: 1.1em; font-weight: 900; color: #ef5350; }
 
     /* ── 비밀번호 오버레이 ── */
     .pw-overlay { position: fixed; inset: 0; background: #f0f2f8; z-index: 999; display: flex; align-items: center; justify-content: center; }
@@ -248,21 +221,13 @@
     .btn-migrate { flex: 1; padding: 6px 8px; background: #f97316; color: #fff; border: none; border-radius: 7px; font-size: 0.85em; font-weight: 700; cursor: pointer; font-family: inherit; }
     .btn-migrate-skip { flex: 1; padding: 6px 8px; background: #f0f0f0; color: #888; border: none; border-radius: 7px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: inherit; }
 
-    /* ── 모바일/태블릿 (터치 디바이스 포함) ── */
-    @media (max-width: 900px), (hover: none) and (pointer: coarse) {
-      html, body {
-        height: auto;
-        min-height: 100vh;
-        overflow-x: hidden;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior-y: contain;
-      }
-      body { display: block; }
+    /* ── 모바일 ── */
+    @media (max-width: 600px) {
+      body { height: auto; overflow: auto; }
       .header { padding: 10px 14px 0; }
       .month-label { font-size: 1em; }
       .nav-btn { width: 30px; height: 30px; font-size: 0.9em; }
-      .monthly-summary { flex-wrap: wrap; }
+.monthly-summary { flex-wrap: wrap; }
       .loc-summary { padding: 6px 8px 7px; gap: 6px; }
       .loc-summary-card { padding: 7px 8px; }
       .summary-item { flex: 0 0 50%; border-right: none; border-bottom: 1px solid #f0f0f0; }
@@ -295,10 +260,8 @@
       .cell-row { font-size: 0.55em; }
       .cell-location { font-size: 0.48em; }
       .modal { width: 92vw; padding: 20px 16px; }
-      .fixed-modal { width: 92vw; padding: 20px 16px; }
+      .loc-modal { width: 92vw; padding: 20px 16px; }
       .fb-status { bottom: 10px; right: 10px; font-size: 0.62em; padding: 4px 9px; }
-      .fixed-btn { font-size: 0.66em; padding: 5px 9px; }
-      .header-title-text { display: none; }
     }
   </style>
 </head>
@@ -306,7 +269,7 @@
 
 <div class="pw-overlay" id="pw-overlay">
   <div class="pw-box">
-    <div class="pw-title">🏪 매장 매출 관리</div>
+    <div class="pw-title">🧥 의류 매출 관리</div>
     <div class="pw-sub">비밀번호를 입력해주세요</div>
     <div class="pw-input-wrap">
       <input type="password" id="pw-input" placeholder="••••" />
@@ -321,15 +284,9 @@
     <button class="nav-btn" id="btn-prev">&#8592;</button>
     <div class="header-center">
       <div class="month-label" id="month-label"></div>
-      <div class="header-title-text" style="font-size:0.7em;font-weight:800;color:#ea580c;letter-spacing:0.5px;">매장 매출 관리</div>
+      <div style="font-size:0.7em;font-weight:800;color:#ea580c;letter-spacing:0.5px;">의류 매출 관리</div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <button class="fixed-btn" id="fixed-btn" onclick="openFixedModal()">
-        <span class="fixed-btn-dot" id="fixed-btn-dot"></span>
-        📌 고정지출
-      </button>
-      <button class="nav-btn" id="btn-next">&#8594;</button>
-    </div>
+    <button class="nav-btn" id="btn-next">&#8594;</button>
   </div>
   <div class="monthly-summary">
     <div class="summary-item">
@@ -351,7 +308,7 @@
   </div>
   <div class="loc-summary">
     <div class="loc-summary-card bp">
-      <div class="loc-summary-title">🟠 하남</div>
+      <div class="loc-summary-title">🟠 부평</div>
       <div class="loc-summary-row"><span>수익</span><span class="loc-val" id="bp-rev">-</span></div>
       <div class="loc-summary-row"><span>지출</span><span class="loc-val neg" id="bp-exp">-</span></div>
       <div class="loc-summary-divider"></div>
@@ -380,7 +337,7 @@
 
 <div class="calendar-wrap" id="calendar-wrap"></div>
 
-<!-- 매출/지출 입력 모달 (일별 변동 지출만) -->
+<!-- 매출/지출 입력 모달 -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <div class="modal-date" id="modal-date"></div>
@@ -388,7 +345,7 @@
 
     <!-- 장소 토글 -->
     <div class="modal-loc-toggle">
-      <button class="loc-btn" id="loc-btn-bupyeong" onclick="setModalLoc('하남')">📍 하남</button>
+      <button class="loc-btn" id="loc-btn-bupyeong" onclick="setModalLoc('부평')">📍 부평</button>
       <button class="loc-btn" id="loc-btn-yeongdeungpo" onclick="setModalLoc('영등포')">📍 영등포</button>
     </div>
 
@@ -420,14 +377,35 @@
       </div>
     </div>
 
-    <!-- 변동 지출 섹션 (사입비, 관리비, 기타) -->
+    <!-- 지출 섹션 -->
     <div class="modal-section">
-      <div class="modal-section-title expense">📦 변동 지출</div>
+      <div class="modal-section-title expense">📦 지출</div>
       <div class="input-group">
+        <div class="input-row rent">
+          <label>월세</label>
+          <div class="input-wrap rent-wrap">
+            <input type="text" inputmode="numeric" id="input-rent" placeholder="0" />
+            <span class="input-unit">원</span>
+          </div>
+        </div>
+        <div class="input-row salary">
+          <label>월급</label>
+          <div class="input-wrap salary-wrap">
+            <input type="text" inputmode="numeric" id="input-salary" placeholder="0" />
+            <span class="input-unit">원</span>
+          </div>
+        </div>
         <div class="input-row purchase">
           <label>사입비</label>
           <div class="input-wrap purchase-wrap">
             <input type="text" inputmode="numeric" id="input-purchase" placeholder="0" />
+            <span class="input-unit">원</span>
+          </div>
+        </div>
+        <div class="input-row vat">
+          <label>부가세</label>
+          <div class="input-wrap vat-wrap">
+            <input type="text" inputmode="numeric" id="input-vat" placeholder="0" />
             <span class="input-unit">원</span>
           </div>
         </div>
@@ -441,15 +419,7 @@
         <div class="input-row etc-exp">
           <label>기타</label>
           <div class="input-wrap etc-wrap">
-            <input type="text" inputmode="numeric" id="input-etc-var" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
-        <!-- 주 결제: 금요일에만 표시 -->
-        <div class="input-row weekpay" id="row-weekpay" style="display:none;">
-          <label>💜 주 결제 (금요일만)</label>
-          <div class="input-wrap weekpay-wrap">
-            <input type="text" inputmode="numeric" id="input-weekpay" placeholder="0" />
+            <input type="text" inputmode="numeric" id="input-etc" placeholder="0" />
             <span class="input-unit">원</span>
           </div>
         </div>
@@ -463,12 +433,12 @@
         <div class="modal-summary-box-value" id="modal-rev-value">0원</div>
       </div>
       <div class="modal-summary-box exp-box">
-        <div class="modal-summary-box-label">변동 지출</div>
+        <div class="modal-summary-box-label">지출 합계</div>
         <div class="modal-summary-box-value" id="modal-exp-value">0원</div>
       </div>
     </div>
     <div class="modal-net positive" id="modal-net">
-      <span class="modal-net-label">순수익 (변동기준)</span>
+      <span class="modal-net-label">순수익</span>
       <span class="modal-net-value" id="modal-net-value">0원</span>
     </div>
 
@@ -476,71 +446,6 @@
       <button class="btn-save" id="btn-save" onclick="saveEntry()">저장</button>
       <button class="btn-delete" id="btn-delete" onclick="deleteEntry()">삭제</button>
       <button class="btn-cancel" onclick="closeModal()">취소</button>
-    </div>
-  </div>
-</div>
-
-<!-- 고정지출 모달 (월별 1회 등록) -->
-<div class="fixed-overlay" id="fixed-overlay">
-  <div class="fixed-modal">
-    <div class="fixed-modal-header">
-      <div class="fixed-modal-month" id="fixed-modal-month"></div>
-      <div class="fixed-modal-title">📌 고정지출 등록</div>
-    </div>
-    <div class="fixed-modal-desc">
-      월세, 월급, 세금, 기타는 매달 한 번만 등록해요.<br>
-      월간 요약에 자동으로 반영됩니다.
-    </div>
-
-    <!-- 장소 토글 -->
-    <div class="modal-loc-toggle">
-      <button class="loc-btn" id="fixed-loc-btn-bp" onclick="setFixedModalLoc('하남')">📍 하남</button>
-      <button class="loc-btn" id="fixed-loc-btn-yd" onclick="setFixedModalLoc('영등포')">📍 영등포</button>
-    </div>
-
-    <div class="modal-section">
-      <div class="modal-section-title expense">🏠 고정 지출</div>
-      <div class="input-group">
-        <div class="input-row rent">
-          <label>월세</label>
-          <div class="input-wrap rent-wrap">
-            <input type="text" inputmode="numeric" id="fixed-input-rent" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
-        <div class="input-row salary">
-          <label>월급</label>
-          <div class="input-wrap salary-wrap">
-            <input type="text" inputmode="numeric" id="fixed-input-salary" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
-        <div class="input-row vat">
-          <label>세금 (부가세 등)</label>
-          <div class="input-wrap vat-wrap">
-            <input type="text" inputmode="numeric" id="fixed-input-vat" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
-        <div class="input-row etc-exp">
-          <label>기타</label>
-          <div class="input-wrap etc-wrap">
-            <input type="text" inputmode="numeric" id="fixed-input-etc" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="fixed-total-box">
-      <span class="fixed-total-label">이달 고정지출 합계</span>
-      <span class="fixed-total-value" id="fixed-total-value">0원</span>
-    </div>
-
-    <div class="modal-btns">
-      <button class="btn-save" id="fixed-btn-save" onclick="saveFixed()">저장</button>
-      <button class="btn-delete" id="fixed-btn-delete" onclick="deleteFixed()" style="display:none;">삭제</button>
-      <button class="btn-cancel" onclick="closeFixedModal()">취소</button>
     </div>
   </div>
 </div>
@@ -559,108 +464,23 @@
 </div>
 
 <script>
-  // ── 보안 설정 ─────────────────────────────────────────────
-  // 비밀번호는 해시로만 저장 (평문 저장 X)
-  //   현재 비밀번호: "0925"  /  salt = PW_SALT
-  //   비밀번호 변경 방법: 터미널에서 아래 명령 실행 후 PW_HASH 값만 교체
-  //     echo -n "boss-sales-secure-v2:새비밀번호" | sha256sum
-  const PW_SALT = 'boss-sales-secure-v2';
-  const PW_HASH = 'ec44293d5d20659614cda0f28256a0cd019ad7cea0b5301497a4dc56c366e6f3';
-  const MAX_ATTEMPTS = 5;
-  const LOCKOUT_MS   = 15 * 60 * 1000;   // 5회 실패 시 15분 잠금
-  const SESSION_MS   = 4  * 60 * 60 * 1000; // 세션 유지 4시간 (이후 재로그인)
+  const PASSWORD = '1225'; // ← 비밀번호 변경 시 여기만 수정
 
-  async function sha256(s) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-  }
-
-  function showPwError(msg) {
-    document.getElementById('pw-error').textContent = msg;
-  }
-
-  async function checkPassword() {
-    const now = Date.now();
-    // 잠금 확인
-    const lockUntil = parseInt(localStorage.getItem('boss-pw-lockout') || '0', 10);
-    if (now < lockUntil) {
-      const mins = Math.ceil((lockUntil - now) / 60000);
-      showPwError(`시도 횟수 초과 — ${mins}분 후 다시 시도해주세요.`);
-      return;
-    }
-
+  function checkPassword() {
     const input = document.getElementById('pw-input').value;
-    if (!input) { showPwError('비밀번호를 입력해주세요.'); return; }
-
-    let hash;
-    try { hash = await sha256(PW_SALT + ':' + input); }
-    catch (e) { showPwError('브라우저가 지원되지 않습니다.'); return; }
-
-    if (hash === PW_HASH) {
-      // 성공: 카운터 리셋, 만료 시각 저장
-      localStorage.removeItem('boss-pw-attempts');
-      localStorage.removeItem('boss-pw-lockout');
-      sessionStorage.setItem('boss-auth', JSON.stringify({ exp: now + SESSION_MS }));
+    if (input === PASSWORD) {
+      sessionStorage.setItem('cloth-auth', '1');
       document.getElementById('pw-overlay').classList.add('hidden');
-      document.getElementById('pw-input').value = '';
-      showPwError('');
-      scheduleAutoLock(now + SESSION_MS);
     } else {
-      const attempts = parseInt(localStorage.getItem('boss-pw-attempts') || '0', 10) + 1;
-      if (attempts >= MAX_ATTEMPTS) {
-        localStorage.setItem('boss-pw-lockout', String(now + LOCKOUT_MS));
-        localStorage.removeItem('boss-pw-attempts');
-        showPwError(`시도 횟수 초과 — 15분 동안 잠금됩니다.`);
-      } else {
-        localStorage.setItem('boss-pw-attempts', String(attempts));
-        showPwError(`비밀번호가 틀렸습니다. (${attempts}/${MAX_ATTEMPTS})`);
-      }
+      document.getElementById('pw-error').textContent = '비밀번호가 틀렸습니다.';
       document.getElementById('pw-input').value = '';
       document.getElementById('pw-input').focus();
     }
   }
-
-  function lockSession() {
-    sessionStorage.removeItem('boss-auth');
-    document.getElementById('pw-overlay').classList.remove('hidden');
-    document.getElementById('pw-input').value = '';
-    setTimeout(() => document.getElementById('pw-input').focus(), 50);
-  }
-
-  let _autoLockTimer = null;
-  function scheduleAutoLock(expAt) {
-    if (_autoLockTimer) clearTimeout(_autoLockTimer);
-    const ms = Math.max(0, expAt - Date.now());
-    // setTimeout의 최대치(약 24.8일) 이내이므로 안전
-    _autoLockTimer = setTimeout(lockSession, ms);
-  }
-
-  // 탭이 다시 보일 때 세션 만료 확인 (백그라운드에서 타이머가 멈출 수 있음)
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return;
-    const raw = sessionStorage.getItem('boss-auth');
-    if (!raw) return;
-    try {
-      const { exp } = JSON.parse(raw);
-      if (!exp || Date.now() >= exp) lockSession();
-    } catch { lockSession(); }
-  });
-
   document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
-
-  // 초기 세션 검사 (기존 '1' 값은 만료 처리)
-  (function initAuth(){
-    const raw = sessionStorage.getItem('boss-auth');
-    if (!raw) return;
-    let exp = 0;
-    try { exp = JSON.parse(raw).exp || 0; } catch { exp = 0; }
-    if (exp && Date.now() < exp) {
-      document.getElementById('pw-overlay').classList.add('hidden');
-      scheduleAutoLock(exp);
-    } else {
-      sessionStorage.removeItem('boss-auth');
-    }
-  })();
+  if (sessionStorage.getItem('cloth-auth') === '1') {
+    document.getElementById('pw-overlay').classList.add('hidden');
+  }
 
   const firebaseConfig = {
     apiKey:            "AIzaSyC0-fkZLIBHdkkLqeWl-mXeBqbaN7dHSmk",
@@ -673,16 +493,15 @@
 
   const MONTH_NAMES  = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   const DAY_KO       = ['일','월','화','수','목','금','토'];
-  const LS_KEY      = 'boss-cloth-sales-data';
-  const LS_MIGRATED = 'boss-cloth-sales-migrated';
+  const LS_KEY      = 'cloth-sales-data';
+  const LS_MIGRATED = 'cloth-sales-migrated';
 
   const todayDate  = new Date();
   const todayKey   = fmt(todayDate.getFullYear(), todayDate.getMonth()+1, todayDate.getDate());
   let currentYear  = todayDate.getFullYear();
   let currentMonth = todayDate.getMonth();
   let selectedKey  = null;
-  let selectedLoc  = '하남';
-  let selectedFixedLoc = '하남';
+  let selectedLoc  = '부평';
   let isSaving     = false;
 
   let sales = {};
@@ -699,7 +518,7 @@
     try {
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
-      db.collection('boss-cloth-sales').onSnapshot(snap => {
+      db.collection('cloth-sales').onSnapshot(snap => {
         sales = {};
         snap.forEach(doc => { sales[doc.id] = doc.data(); });
         buildCalendar();
@@ -724,7 +543,6 @@
   }
 
   function fmt(y, m, d) { return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-  function fmtMonth(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
   function fmtMoney(n) {
     if (!n || n === 0) return '-';
     const abs = Math.abs(n);
@@ -741,32 +559,13 @@
     return (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('ko-KR') + '원';
   }
 
-  // ── 일별 변동 지출만 계산 (사입비, 관리비, 기타, 주결제[금요일만]) ──
+
   function calcEntry(entry) {
     if (!entry) return { revenue: 0, expense: 0, net: 0, card: 0, transfer: 0, cash: 0 };
     const card = entry.card || 0, transfer = entry.transfer || 0, cash = entry.cash || 0;
-    const expense = (entry.purchase || 0) + (entry.mgmt || 0) + (entry.etcVar || 0) + (entry.weekpay || 0);
+    const expense = (entry.rent||0) + (entry.salary||0) + (entry.purchase||0) + (entry.vat||0) + (entry.mgmt||0) + (entry.etc||0);
     const revenue = card + transfer + cash;
     return { revenue, expense, net: revenue - expense, card, transfer, cash };
-  }
-
-  // ── 월별 고정지출 계산 ──
-  function calcFixed(y, m, loc) {
-    const key = `fixed_${fmtMonth(y, m)}_${loc}`;
-    const entry = sales[key] || {};
-    const total = (entry.rent || 0) + (entry.salary || 0) + (entry.vat || 0) + (entry.etc || 0);
-    return { total, rent: entry.rent||0, salary: entry.salary||0, vat: entry.vat||0, etc: entry.etc||0, hasData: total > 0 };
-  }
-
-  // ── 고정지출 버튼 상태 업데이트 ──
-  function updateFixedBtn() {
-    const fixedBp = calcFixed(currentYear, currentMonth, '하남');
-    const fixedYd = calcFixed(currentYear, currentMonth, '영등포');
-    const hasAny = fixedBp.total > 0 || fixedYd.total > 0;
-    const btn = document.getElementById('fixed-btn');
-    const dot = document.getElementById('fixed-btn-dot');
-    btn.classList.toggle('has-data', hasAny);
-    dot.style.display = hasAny ? 'inline-block' : 'none';
   }
 
   // ── 캘린더 렌더링 ──
@@ -809,7 +608,7 @@
         } else {
           const key    = fmt(y, m+1, d);
           const dow    = new Date(y, m, d).getDay();
-          const bp     = calcEntry(sales[`${key}_하남`]);
+          const bp     = calcEntry(sales[`${key}_부평`]);
           const yd     = calcEntry(sales[`${key}_영등포`]);
           const totRev = bp.revenue + yd.revenue;
           const totExp = bp.expense + yd.expense;
@@ -842,11 +641,11 @@
               monthRevYd += yd.revenue; monthExpYd += yd.expense; monthDaysYd++;
             }
 
-            // 하남 행
+            // 부평 행
             if (bp.revenue > 0 || bp.expense > 0) {
               const bpEl = document.createElement('div');
               bpEl.style.cssText = 'display:flex;align-items:center;gap:2px;font-size:0.58em;line-height:1.3;overflow:hidden;';
-              bpEl.innerHTML = `<span style="font-size:0.9em;font-weight:800;background:#fff7ed;color:#ea580c;border-radius:3px;padding:0 3px;flex-shrink:0;">하남</span><span style="font-weight:800;color:${bp.net>=0?'#43a047':'#ef5350'};margin-left:auto;white-space:nowrap;">${fmtMoney(bp.net)}</span>`;
+              bpEl.innerHTML = `<span style="font-size:0.9em;font-weight:800;background:#fff7ed;color:#ea580c;border-radius:3px;padding:0 3px;flex-shrink:0;">부평</span><span style="font-weight:800;color:${bp.net>=0?'#43a047':'#ef5350'};margin-left:auto;white-space:nowrap;">${fmtMoney(bp.net)}</span>`;
               cell.appendChild(bpEl);
             }
             // 영등포 행
@@ -884,7 +683,7 @@
           ${wkRevBp > 0 || wkExpBp > 0 ? `
             <div class="week-loc-row">
               <span class="week-loc-dot bp"></span>
-              <span class="week-loc-name">하남</span>
+              <span class="week-loc-name">부평</span>
               <span class="week-loc-net ${wkNetBp >= 0 ? 'positive' : 'negative'}">${fmtMoney(wkNetBp)}</span>
             </div>` : ''}
           ${wkRevYd > 0 || wkExpYd > 0 ? `
@@ -910,7 +709,7 @@
         bar.className = 'week-bar';
         bar.innerHTML = `
           <span class="week-bar-label">주간</span>
-          ${wkRevBp > 0 || wkExpBp > 0 ? `<span class="week-bar-sep">|</span><span class="week-bar-bp">하남 ${fmtMoney(wkNetBp)}</span>` : ''}
+          ${wkRevBp > 0 || wkExpBp > 0 ? `<span class="week-bar-sep">|</span><span class="week-bar-bp">부평 ${fmtMoney(wkNetBp)}</span>` : ''}
           ${wkRevYd > 0 || wkExpYd > 0 ? `<span class="week-bar-sep">|</span><span class="week-bar-yd">영등포 ${fmtMoney(wkNetYd)}</span>` : ''}
           <span class="week-bar-sep">|</span>
           <span class="week-bar-net ${wkNet >= 0 ? 'positive' : 'negative'}">합계 ${fmtMoney(wkNet)}</span>
@@ -920,13 +719,7 @@
       wrap.appendChild(wkGroup);
     });
 
-    // ── 고정지출 포함한 월간 요약 ──
-    const fixedBp = calcFixed(y, m, '하남');
-    const fixedYd = calcFixed(y, m, '영등포');
-    monthExpBp += fixedBp.total;
-    monthExpYd += fixedYd.total;
-    monthExpense += fixedBp.total + fixedYd.total;
-
+    // 월간 요약 (전체 합계)
     const totalNet = monthRevenue - monthExpense;
     document.getElementById('sum-revenue').textContent = monthRevenue > 0 ? fmtMoneyFull(monthRevenue) : '-';
     document.getElementById('sum-expense').textContent = monthExpense > 0 ? fmtMoneyFull(monthExpense) : '-';
@@ -935,7 +728,7 @@
     netEl.className = 'summary-value net' + (totalNet < 0 ? ' negative' : '');
     document.getElementById('sum-days').textContent = monthDays > 0 ? monthDays + '일' : '-';
 
-    // 하남 / 영등포 카드
+    // 부평 / 영등포 카드
     const bpNet = monthRevBp - monthExpBp;
     const ydNet = monthRevYd - monthExpYd;
     document.getElementById('bp-rev').textContent = monthRevBp > 0 ? fmtMoneyFull(monthRevBp) : '-';
@@ -948,8 +741,6 @@
     const ydNetEl = document.getElementById('yd-net');
     ydNetEl.textContent = (monthRevYd > 0 || monthExpYd > 0) ? fmtMoneyFull(ydNet) : '-';
     ydNetEl.className = 'net-val ' + (ydNet < 0 ? 'negative' : 'positive');
-
-    updateFixedBtn();
   }
 
   // ── 콤마 포맷 ──
@@ -960,53 +751,49 @@
   function parseComma(id) {
     return parseInt((document.getElementById(id).value || '').replace(/[^0-9]/g, '')) || 0;
   }
-  ['input-card','input-transfer','input-cash','input-purchase','input-mgmt','input-etc-var','input-weekpay'].forEach(id => {
+  ['input-card','input-transfer','input-cash','input-rent','input-salary','input-purchase','input-vat','input-mgmt','input-etc'].forEach(id => {
     document.getElementById(id).addEventListener('input', e => formatComma(e.target));
   });
-  ['fixed-input-rent','fixed-input-salary','fixed-input-vat','fixed-input-etc'].forEach(id => {
-    document.getElementById(id).addEventListener('input', e => { formatComma(e.target); updateFixedModalSummary(); });
-  });
 
-  // ── 일별 모달 ──
+  // ── 모달 ──
   function getInputs() {
     return {
       card:     parseComma('input-card'),
       transfer: parseComma('input-transfer'),
       cash:     parseComma('input-cash'),
+      rent:     parseComma('input-rent'),
+      salary:   parseComma('input-salary'),
       purchase: parseComma('input-purchase'),
+      vat:      parseComma('input-vat'),
       mgmt:     parseComma('input-mgmt'),
-      etcVar:   parseComma('input-etc-var'),
-      weekpay:  parseComma('input-weekpay'),
+      etc:      parseComma('input-etc'),
     };
   }
 
-  // 현재 열려 있는 모달의 요일 (주 결제 field는 금요일=5일 때만 활성화)
-  let modalDow = null;
-  function isFridayModal() { return modalDow === 5; }
-
   function setModalLoc(loc) {
     selectedLoc = loc;
-    document.getElementById('loc-btn-bupyeong').classList.toggle('active', loc === '하남');
+    document.getElementById('loc-btn-bupyeong').classList.toggle('active', loc === '부평');
     document.getElementById('loc-btn-yeongdeungpo').classList.toggle('active', loc === '영등포');
     if (selectedKey) {
       const entry = sales[`${selectedKey}_${loc}`] || {};
       document.getElementById('input-card').value     = entry.card     ? entry.card.toLocaleString('ko-KR')     : '';
       document.getElementById('input-transfer').value = entry.transfer ? entry.transfer.toLocaleString('ko-KR') : '';
       document.getElementById('input-cash').value     = entry.cash     ? entry.cash.toLocaleString('ko-KR')     : '';
-      document.getElementById('input-purchase').value  = entry.purchase ? entry.purchase.toLocaleString('ko-KR') : '';
-      document.getElementById('input-mgmt').value      = entry.mgmt     ? entry.mgmt.toLocaleString('ko-KR')     : '';
-      document.getElementById('input-etc-var').value   = entry.etcVar   ? entry.etcVar.toLocaleString('ko-KR')   : '';
-      document.getElementById('input-weekpay').value   = entry.weekpay  ? entry.weekpay.toLocaleString('ko-KR')  : '';
+      document.getElementById('input-rent').value     = entry.rent     ? entry.rent.toLocaleString('ko-KR')     : '';
+      document.getElementById('input-salary').value   = entry.salary   ? entry.salary.toLocaleString('ko-KR')   : '';
+      document.getElementById('input-purchase').value = entry.purchase ? entry.purchase.toLocaleString('ko-KR') : '';
+      document.getElementById('input-vat').value      = entry.vat      ? entry.vat.toLocaleString('ko-KR')      : '';
+      document.getElementById('input-mgmt').value     = entry.mgmt     ? entry.mgmt.toLocaleString('ko-KR')     : '';
+      document.getElementById('input-etc').value      = entry.etc      ? entry.etc.toLocaleString('ko-KR')      : '';
       document.getElementById('btn-delete').style.display = sales[`${selectedKey}_${loc}`] ? 'inline-block' : 'none';
       updateModalSummary();
     }
   }
 
   function updateModalSummary() {
-    const { card, transfer, cash, purchase, mgmt, etcVar, weekpay } = getInputs();
+    const { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc } = getInputs();
     const revenue = card + transfer + cash;
-    // 주 결제는 금요일에만 지출에 포함
-    const expense = purchase + mgmt + etcVar + (isFridayModal() ? weekpay : 0);
+    const expense = rent + salary + purchase + vat + mgmt + etc;
     const net     = revenue - expense;
     document.getElementById('modal-rev-value').textContent = fmtMoneyFull(revenue);
     document.getElementById('modal-exp-value').textContent = fmtMoneyFull(expense);
@@ -1015,15 +802,12 @@
     netBox.className = 'modal-net ' + (net >= 0 ? 'positive' : 'negative');
   }
 
-  ['input-card','input-transfer','input-cash','input-purchase','input-mgmt','input-etc-var','input-weekpay'].forEach(id => {
+  ['input-card','input-transfer','input-cash','input-rent','input-salary','input-purchase','input-vat','input-mgmt','input-etc'].forEach(id => {
     document.getElementById(id).addEventListener('input', updateModalSummary);
   });
 
   function openModal(key, month, day, dow) {
     selectedKey = key;
-    modalDow = dow;
-    // 주 결제는 금요일(dow===5)에만 노출
-    document.getElementById('row-weekpay').style.display = (dow === 5) ? 'flex' : 'none';
     document.getElementById('modal-date').textContent = `${currentYear}년 ${MONTH_NAMES[month]} ${day}일 (${DAY_KO[dow]})`;
     document.getElementById('btn-save').disabled = false;
     setModalLoc(selectedLoc);
@@ -1035,17 +819,14 @@
 
   async function saveEntry() {
     if (isSaving) return;
-    const { card, transfer, cash, purchase, mgmt, etcVar, weekpay } = getInputs();
+    const { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc } = getInputs();
     const fsKey = `${selectedKey}_${selectedLoc}`;
-    const effectiveWeekpay = isFridayModal() ? weekpay : 0;
-    if (card === 0 && transfer === 0 && cash === 0 && purchase === 0 && mgmt === 0 && etcVar === 0 && effectiveWeekpay === 0) { deleteEntry(); return; }
+    if (card === 0 && transfer === 0 && cash === 0 && rent === 0 && salary === 0 && purchase === 0 && vat === 0 && mgmt === 0 && etc === 0) { deleteEntry(); return; }
     isSaving = true;
     document.getElementById('btn-save').disabled = true;
-    const data = { card, transfer, cash, purchase, mgmt, etcVar };
-    // 주 결제는 금요일에만 저장
-    if (isFridayModal() && weekpay > 0) data.weekpay = weekpay;
+    const data = { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc };
     if (USE_FIREBASE && db) {
-      try { await db.collection('boss-cloth-sales').doc(fsKey).set(data); }
+      try { await db.collection('cloth-sales').doc(fsKey).set(data); }
       catch(e) { alert('저장 중 오류가 발생했습니다.'); document.getElementById('btn-save').disabled = false; isSaving = false; return; }
     } else {
       sales[fsKey] = data;
@@ -1058,7 +839,7 @@
   async function deleteEntry() {
     const fsKey = `${selectedKey}_${selectedLoc}`;
     if (USE_FIREBASE && db) {
-      try { await db.collection('boss-cloth-sales').doc(fsKey).delete(); }
+      try { await db.collection('cloth-sales').doc(fsKey).delete(); }
       catch(e) { alert('삭제 중 오류가 발생했습니다.'); return; }
     } else {
       delete sales[fsKey];
@@ -1066,77 +847,6 @@
       buildCalendar();
     }
     closeModal();
-  }
-
-  // ── 고정지출 모달 ──
-  function getFixedInputs() {
-    return {
-      rent:   parseComma('fixed-input-rent'),
-      salary: parseComma('fixed-input-salary'),
-      vat:    parseComma('fixed-input-vat'),
-      etc:    parseComma('fixed-input-etc'),
-    };
-  }
-
-  function updateFixedModalSummary() {
-    const { rent, salary, vat, etc } = getFixedInputs();
-    const total = rent + salary + vat + etc;
-    document.getElementById('fixed-total-value').textContent = fmtMoneyFull(total);
-  }
-
-  function setFixedModalLoc(loc) {
-    selectedFixedLoc = loc;
-    document.getElementById('fixed-loc-btn-bp').classList.toggle('active', loc === '하남');
-    document.getElementById('fixed-loc-btn-yd').classList.toggle('active', loc === '영등포');
-    const key = `fixed_${fmtMonth(currentYear, currentMonth)}_${loc}`;
-    const entry = sales[key] || {};
-    document.getElementById('fixed-input-rent').value   = entry.rent   ? entry.rent.toLocaleString('ko-KR')   : '';
-    document.getElementById('fixed-input-salary').value = entry.salary ? entry.salary.toLocaleString('ko-KR') : '';
-    document.getElementById('fixed-input-vat').value    = entry.vat    ? entry.vat.toLocaleString('ko-KR')    : '';
-    document.getElementById('fixed-input-etc').value    = entry.etc    ? entry.etc.toLocaleString('ko-KR')    : '';
-    document.getElementById('fixed-btn-delete').style.display = sales[key] ? 'inline-block' : 'none';
-    updateFixedModalSummary();
-  }
-
-  function openFixedModal() {
-    document.getElementById('fixed-modal-month').textContent =
-      `${currentYear}년 ${MONTH_NAMES[currentMonth]} 고정지출`;
-    document.getElementById('fixed-btn-save').disabled = false;
-    setFixedModalLoc(selectedFixedLoc);
-    document.getElementById('fixed-overlay').classList.add('open');
-    setTimeout(() => document.getElementById('fixed-input-rent').focus(), 50);
-  }
-
-  function closeFixedModal() { document.getElementById('fixed-overlay').classList.remove('open'); }
-
-  async function saveFixed() {
-    const { rent, salary, vat, etc } = getFixedInputs();
-    const fsKey = `fixed_${fmtMonth(currentYear, currentMonth)}_${selectedFixedLoc}`;
-    if (rent === 0 && salary === 0 && vat === 0 && etc === 0) { deleteFixed(); return; }
-    document.getElementById('fixed-btn-save').disabled = true;
-    const data = { rent, salary, vat, etc };
-    if (USE_FIREBASE && db) {
-      try { await db.collection('boss-cloth-sales').doc(fsKey).set(data); }
-      catch(e) { alert('저장 중 오류가 발생했습니다.'); document.getElementById('fixed-btn-save').disabled = false; return; }
-    } else {
-      sales[fsKey] = data;
-      localStorage.setItem(LS_KEY, JSON.stringify(sales));
-      buildCalendar();
-    }
-    closeFixedModal();
-  }
-
-  async function deleteFixed() {
-    const fsKey = `fixed_${fmtMonth(currentYear, currentMonth)}_${selectedFixedLoc}`;
-    if (USE_FIREBASE && db) {
-      try { await db.collection('boss-cloth-sales').doc(fsKey).delete(); }
-      catch(e) { alert('삭제 중 오류가 발생했습니다.'); return; }
-    } else {
-      delete sales[fsKey];
-      localStorage.setItem(LS_KEY, JSON.stringify(sales));
-      buildCalendar();
-    }
-    closeFixedModal();
   }
 
   async function migrateFromLocal() {
@@ -1147,7 +857,7 @@
     document.querySelector('.btn-migrate').disabled = true;
     try {
       const batch = db.batch();
-      keys.forEach(key => batch.set(db.collection('boss-cloth-sales').doc(key), localData[key], { merge: true }));
+      keys.forEach(key => batch.set(db.collection('cloth-sales').doc(key), localData[key], { merge: true }));
       await batch.commit();
       localStorage.setItem(LS_MIGRATED, '1');
       dismissMigrate();
@@ -1164,17 +874,15 @@
   document.getElementById('btn-next').onclick = () => { if (currentMonth === 11) { currentMonth = 0; currentYear++; } else currentMonth++; buildCalendar(); };
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeModal(); closeFixedModal(); }
+    if (e.key === 'Escape') { closeModal(); }
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') saveEntry();
     const salesOpen = document.getElementById('modal-overlay').classList.contains('open');
-    const fixedOpen = document.getElementById('fixed-overlay').classList.contains('open');
-    if (!salesOpen && !fixedOpen) {
+    if (!salesOpen) {
       if (e.key === 'ArrowLeft')  document.getElementById('btn-prev').click();
       if (e.key === 'ArrowRight') document.getElementById('btn-next').click();
     }
   });
   document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
-  document.getElementById('fixed-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeFixedModal(); });
 </script>
 </body>
 </html>
